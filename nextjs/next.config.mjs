@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 
-const API_URL = "http://fastapi:8000";
+const API_URL = "http://backend:8000";
 
 const nextConfig = {
   reactStrictMode: true,

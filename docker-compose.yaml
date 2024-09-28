@@ -1,36 +1,42 @@
+# version: '3.8'
+
 services:
+  # Next.js frontend service
   nextjs:
     build:
-      context: ./nextjs
+      context: ./nextjs    # Path to the Next.js folder (relative to docker-compose.yaml)
     ports:
-      - "3000:3000"
+      - "3000:3000"        # Map host port 3000 to container port 3000
     volumes:
-      - ./nextjs:/src
-      - /src/node_modules # This masks the node_modules directory from the host system and prevents it from being mapped from your local filesystem. The container will manage its own node_modules directory.
-    working_dir: /src
-    command: npm run dev
+      - ./nextjs:/src      # Map the nextjs folder to /src inside the container
+      - /src/node_modules  # Prevents mapping node_modules from the host system
+    working_dir: /src      # Set working directory inside the container
+    command: npm run dev   # Command to start the Next.js server
 
+  # PostgreSQL database service
   db:
-    image: postgres:13
+    image: postgres:13         # Use the PostgreSQL 13 image
     ports:
-      - "5432:5432"
+      - "5432:5432"            # Map host port 5432 to container port 5432
     environment:
-      POSTGRES_USER: temp
-      POSTGRES_PASSWORD: temp
-      POSTGRES_DB: advcompro
+      POSTGRES_USER: temp      # Set the database user
+      POSTGRES_PASSWORD: temp  # Set the database password
+      POSTGRES_DB: advcompro   # Set the default database name
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data  # Persist PostgreSQL data
 
+  # FastAPI backend service
   fastapi:
     build:
-      context: ./fastapi
+      context: ./fastapi    # Path to the FastAPI folder (relative to docker-compose.yaml)
     ports:
-      - "8000:8000"
+      - "8000:8000"         # Map host port 8000 to container port 8000
     volumes:
-      - ./fastapi:/src
-    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+      - ./fastapi:/src      # Map the fastapi folder to /src inside the container
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload  # Command to start FastAPI
     depends_on:
-      - db
+      - db                  # Wait for the database service to be ready before starting FastAPI
 
+# Named volumes for data persistence
 volumes:
-  postgres_data:
+  postgres_data:              # Define a named volume for persistent PostgreSQL data
