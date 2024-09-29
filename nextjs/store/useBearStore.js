@@ -1,4 +1,3 @@
-// useBearStore.js
 import { create } from 'zustand';
 import axios from 'axios';
 
@@ -14,7 +13,7 @@ const useBearStore = create((set) => ({
     try {
       const response = await axios.get('http://localhost:8000/api/get_customers');
       const customers = response.data;
-      set({ customers, carCount: customers.filter(c => !c.checked).length });
+      set({ customers, carCount: customers.filter((c) => !c.checked).length });
     } catch (error) {
       console.error('Failed to fetch customers:', error);
     }
@@ -22,19 +21,19 @@ const useBearStore = create((set) => ({
 
   addCustomer: (customer) => set((state) => {
     const newCustomers = [...state.customers, { ...customer, checked: false }];
-    return { customers: newCustomers, carCount: newCustomers.filter(c => !c.checked).length };
+    return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
   }),
 
   deleteCustomer: (index) => set((state) => {
     const newCustomers = state.customers.filter((_, i) => i !== index);
-    return { customers: newCustomers, carCount: newCustomers.filter(c => !c.checked).length };
+    return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
   }),
 
   toggleCustomerStatus: (index) => set((state) => {
     const newCustomers = state.customers.map((customer, i) =>
       i === index ? { ...customer, checked: !customer.checked } : customer
     );
-    return { customers: newCustomers, carCount: newCustomers.filter(c => !c.checked).length };
+    return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
   }),
 }));
 

@@ -1,4 +1,3 @@
-// CustomerTable.js
 import React, { useEffect } from 'react';
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Button } from '@mui/material';
 import useBearStore from '@/store/useBearStore';
@@ -36,6 +35,7 @@ export default function CustomerTable() {
         <TableHead>
           <TableRow>
             <StyledTableCell>Status</StyledTableCell>
+            <StyledTableCell>Date</StyledTableCell> {/* Add Date column */}
             <StyledTableCell>Customer Name</StyledTableCell>
             <StyledTableCell>Tel</StyledTableCell>
             <StyledTableCell>License Plate</StyledTableCell>
@@ -56,6 +56,7 @@ export default function CustomerTable() {
                   sx={{ color: 'white' }}
                 />
               </TableCell>
+              <TableCell style={{ color: '#ffffff', textAlign: 'center' }}>{customer.timestamp ? new Date(customer.timestamp).toLocaleString() : 'N/A'}</TableCell>
               <TableCell style={{ color: '#ffffff', textAlign: 'center' }}>{`${customer.name} ${customer.surname}`}</TableCell>
               <TableCell style={{ color: '#ffffff', textAlign: 'center' }}>{customer.tel}</TableCell>
               <TableCell style={{ color: '#ffffff', textAlign: 'center' }}>{customer.licensePlate}</TableCell>

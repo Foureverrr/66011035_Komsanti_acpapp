@@ -1,10 +1,10 @@
-// CustomerForm.js
 import React from 'react';
 import { Box, TextField, Button, Select, MenuItem, InputLabel, FormControl, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import axios from 'axios';
 import useBearStore from '@/store/useBearStore';
 
+// Styled components to maintain the existing UI design
 const WhiteTextField = styled(TextField)({
   '& label': {
     color: '#ffffff',
@@ -45,26 +45,27 @@ const WhiteSelect = styled(Select)({
 
 export default function CustomerForm() {
   const addCustomer = useBearStore((state) => state.addCustomer);
-  const fetchCustomers = useBearStore((state) => state.fetchCustomers);
 
+  // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     const formData = new FormData(event.target);
     const customerData = Object.fromEntries(formData.entries());
 
     try {
       const response = await axios.post('http://localhost:8000/api/add_customer', customerData);
       console.log('Customer data added successfully:', response.data);
+
+      // Update Zustand state with the new customer data including the timestamp
+      addCustomer({ ...customerData, timestamp: new Date().toISOString() });
       alert('Customer data added successfully');
-      
-      // Update state and fetch latest customers from the backend
-      addCustomer(customerData);
-      fetchCustomers();
     } catch (error) {
       console.error('Error adding customer data:', error);
       alert('Failed to add customer data');
     }
 
+    // Reset the form after successful submission
     event.target.reset();
   };
 

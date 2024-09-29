@@ -2,15 +2,18 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from models import Customer, Vehicle, Main
+from datetime import datetime
 
 # Create a customer entry in the database
 async def create_customer(db: AsyncSession, data: dict):
     try:
         print(f"Creating customer with data: {data}")
+        # Ensure the timestamp field is handled correctly
         new_customer = Customer(
             name=data['name'],
             surname=data['surname'],
             tel=data['tel'],
+            timestamp=data.get('timestamp', datetime.utcnow())  # Use the provided timestamp or current UTC time
         )
         db.add(new_customer)
         await db.commit()
