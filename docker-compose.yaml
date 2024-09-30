@@ -1,17 +1,22 @@
-# version: '3.8'
+# docker-compose.yaml
+
+version: '3.8'
 
 services:
   # Next.js frontend service
   nextjs:
     build:
-      context: ./nextjs    # Path to the Next.js folder (relative to docker-compose.yaml)
+      context: ./nextjs    # Path to the Next.js folder
     ports:
       - "3000:3000"        # Map host port 3000 to container port 3000
     volumes:
       - ./nextjs:/src      # Map the nextjs folder to /src inside the container
-      - /src/node_modules  # Prevents mapping node_modules from the host system
-    working_dir: /src      # Set working directory inside the container
-    command: npm run dev   # Command to start the Next.js server
+      # This is to avoid conflicts between the host's node_modules and container's node_modules
+      - /src/node_modules
+    working_dir: /src      # Set the working directory inside the container
+    command: npm run dev   # Command to start the Next.js server in development mode
+    depends_on:
+      - fastapi            # Ensure Next.js waits for FastAPI to start
 
   # PostgreSQL database service
   db:
@@ -28,15 +33,17 @@ services:
   # FastAPI backend service
   fastapi:
     build:
-      context: ./fastapi    # Path to the FastAPI folder (relative to docker-compose.yaml)
+      context: ./fastapi    # Path to the FastAPI folder
     ports:
       - "8000:8000"         # Map host port 8000 to container port 8000
     volumes:
       - ./fastapi:/src      # Map the fastapi folder to /src inside the container
     command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload  # Command to start FastAPI
     depends_on:
-      - db                  # Wait for the database service to be ready before starting FastAPI
+      - db                  # Ensure FastAPI waits for the database to start
+    environment:
+      DATABASE_URL: postgresql+asyncpg://temp:temp@db/advcompro  # Database URL for FastAPI
 
 # Named volumes for data persistence
 volumes:
-  postgres_data:              # Define a named volume for persistent PostgreSQL data
+  postgres_data:

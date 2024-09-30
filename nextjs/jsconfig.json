@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
+    "baseUrl": ".", // Make sure baseUrl is set to root directory
     "paths": {
       "@/*": ["./*"]
     }
-  }
+  },
+  "exclude": ["node_modules", ".next"]
 }
