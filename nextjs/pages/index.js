@@ -28,7 +28,7 @@ export default function Home() {
   useEffect(() => {
     // Calculate the total income and the number of fixing cars based on the fetched main table data
     if (customers && customers.length > 0) {
-      const income = customers.reduce((sum, customer) => sum + parseFloat(customer.nextCheckup || 0), 0);
+      const income = customers.reduce((sum, customer) => sum + parseFloat(customer.cost || 0), 0);
       setTotalIncome(income);
 
       const fixingCarCount = customers.filter((customer) => !customer.checked).length;

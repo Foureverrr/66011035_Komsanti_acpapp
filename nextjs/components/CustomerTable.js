@@ -62,7 +62,7 @@ export default function CustomerTable() {
               <TableCell style={{ color: '#ffffff', textAlign: 'center' }}>{customer.licensePlate}</TableCell>
               <TableCell style={{ color: '#ffffff', textAlign: 'center' }}>{`${customer.brand} ${customer.model}`}</TableCell>
               <TableCell style={{ color: '#ffffff', textAlign: 'center' }}>{customer.symptoms}</TableCell>
-              <TableCell style={{ color: '#ffffff', textAlign: 'center' }}>{customer.nextCheckup}</TableCell>
+              <TableCell style={{ color: '#ffffff', textAlign: 'center' }}>{customer.cost}</TableCell>
               <TableCell style={{ color: '#ffffff', textAlign: 'center' }}>{customer.mechanic}</TableCell>
               <TableCell>
                 <Button onClick={() => deleteCustomer(index)} variant="contained" sx={{ backgroundColor: '#182b3b', color: '#ffffff' }}>Delete</Button>

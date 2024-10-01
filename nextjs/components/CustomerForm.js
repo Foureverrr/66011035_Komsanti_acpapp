@@ -91,7 +91,7 @@ export default function CustomerForm() {
       </FormControl>
 
       <Typography variant="h5" style={{ color: '#ffffff' }}>Maintenance Info</Typography>
-      <WhiteTextField label="Cost" name="nextCheckup" required fullWidth margin="dense" variant="outlined" />
+      <WhiteTextField label="Cost" name="cost" required fullWidth margin="dense" variant="outlined" />
 
       <FormControl fullWidth margin="dense" variant="outlined">
         <InputLabel style={{ color: '#ffffff' }}>Mechanic</InputLabel>

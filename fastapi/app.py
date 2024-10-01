@@ -21,7 +21,7 @@ class CustomerCreate(BaseModel):
     model: str
     licensePlate: str
     symptoms: str
-    nextCheckup: float
+    cost: float
     mechanic: str
     timestamp: datetime = None  # Include a timestamp field with a default of None
 

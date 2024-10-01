@@ -52,7 +52,7 @@ async def create_main(db: AsyncSession, data: dict):
             license_plate=data["licensePlate"],
             car=f"{data['brand']} {data['model']}",
             symptoms=data["symptoms"],
-            cost=data["nextCheckup"],
+            cost=data["cost"],
             mechanic=data["mechanic"]
         )
         db.add(new_main)
