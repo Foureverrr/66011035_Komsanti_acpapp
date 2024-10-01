@@ -1,3 +1,5 @@
+// useBearStore.js
+
 import { create } from 'zustand';
 import axios from 'axios';
 
@@ -24,17 +26,25 @@ const useBearStore = create((set) => ({
     return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
   }),
 
+  // Function to delete a customer from state
   deleteCustomer: (index) => set((state) => {
     const newCustomers = state.customers.filter((_, i) => i !== index);
     return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
   }),
 
+  // Function to toggle customer status (e.g., checked/unchecked)
   toggleCustomerStatus: (index) => set((state) => {
     const newCustomers = state.customers.map((customer, i) =>
       i === index ? { ...customer, checked: !customer.checked } : customer
     );
     return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
   }),
+
+  // New function to set the customers state directly (for clearing frontend view)
+  setCustomers: (newCustomers) => set(() => ({
+    customers: newCustomers,
+    carCount: newCustomers.filter((c) => !c.checked).length,
+  })),
 }));
 
 export default useBearStore;

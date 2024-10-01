@@ -1,6 +1,7 @@
 # crud.py
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete
 from models import Customer, Vehicle, Main
 from datetime import datetime
 
@@ -8,7 +9,6 @@ from datetime import datetime
 async def create_customer(db: AsyncSession, data: dict):
     try:
         print(f"Creating customer with data: {data}")
-        # Ensure the timestamp field is handled correctly
         new_customer = Customer(
             name=data['name'],
             surname=data['surname'],
@@ -62,4 +62,17 @@ async def create_main(db: AsyncSession, data: dict):
         return new_main
     except Exception as e:
         print(f"Error in create_main: {e}")
+        raise
+
+# Function to delete a customer and related data from the database
+async def delete_customer_by_id(db: AsyncSession, customer_id: int):
+    try:
+        # Delete from Main, Vehicle, and Customer tables
+        await db.execute(delete(Main).where(Main.id == customer_id))
+        await db.execute(delete(Vehicle).where(Vehicle.id == customer_id))
+        await db.execute(delete(Customer).where(Customer.id == customer_id))
+        await db.commit()
+        print(f"Deleted customer with ID {customer_id}")
+    except Exception as e:
+        print(f"Error in delete_customer_by_id: {e}")
         raise

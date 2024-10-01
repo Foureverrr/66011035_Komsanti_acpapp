@@ -70,7 +70,7 @@ export default function CustomerForm() {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} className="form-container" sx={{ width: '30%', padding: '50px' }}>
+    <Box component="form" onSubmit={handleSubmit} className="form-container" sx={{ width: '22%', padding: '40px' }}>
       <Typography variant="h5" style={{ color: '#ffffff' }}>Customer Info</Typography>
       <WhiteTextField label="Name" name="name" required fullWidth margin="dense" variant="outlined" />
       <WhiteTextField label="Surname" name="surname" required fullWidth margin="dense" variant="outlined" />

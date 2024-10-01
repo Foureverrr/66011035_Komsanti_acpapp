@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from database import async_engine, get_db, metadata
 from models import Customer, Vehicle, Main
-from crud import create_customer, create_vehicle, create_main
+from crud import create_customer, create_vehicle, create_main, delete_customer_by_id
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
@@ -87,6 +87,14 @@ async def get_customers(db: AsyncSession = Depends(get_db)):
         print(f"Error fetching customers: {e}")
         raise HTTPException(status_code=400, detail=f"Failed to fetch customers: {e}")
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+@app.delete("/api/delete_customer/{customer_id}")
+async def delete_customer(customer_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Endpoint to delete a customer and related data from the database.
+    """
+    try:
+        await delete_customer_by_id(db, customer_id)
+        return {"message": f"Customer with ID {customer_id} deleted successfully"}
+    except Exception as e:
+        print(f"Error deleting customer: {e}")
+        raise HTTPException(status_code=400, detail=f"Failed to delete customer: {e}")

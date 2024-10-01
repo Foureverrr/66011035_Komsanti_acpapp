@@ -1,16 +1,19 @@
+/* Global styles */
 body {
   font-family: Arial, sans-serif;
-  background-color: #355364;
+  background-color: #355364; /* Background color for the entire application */
   margin: 0;
   padding: 0;
 }
 
+/* Container styles */
 .container {
   width: 100%;
   margin: auto;
   overflow: auto;
 }
 
+/* Tab navigation styles */
 .tabs {
   display: flex;
   justify-content: space-around;
@@ -27,7 +30,7 @@ body {
 }
 
 .tab.active {
-  background-color: rgb(53, 83, 100);
+  background-color: rgb(53, 83, 100); /* Active tab color */
 }
 
 .tab-content {
@@ -42,16 +45,21 @@ body {
   justify-content: space-between;
 }
 
+/* Form container styles */
 .form-container {
   width: 25%;
 }
 
+/* Table container styles */
 .table-container {
   width: 70%;
   padding-right: 50px;
   color: white;
+  min-width: 800px; /* Minimum width to maintain table structure */
+  /*table-layout: fixed; /* Ensure table columns don't change dynamically */
 }
 
+/* Dashboard container styles */
 .dashboard-container {
   width: 100%;
   display: flex;
@@ -61,6 +69,7 @@ body {
   color: white;
 }
 
+/* Form styles */
 form {
   display: flex;
   flex-direction: column;
@@ -75,6 +84,7 @@ input, select {
   margin-top: 5px;
 }
 
+/* Button styles */
 button {
   margin-top: 20px;
   padding: 10px;
@@ -84,10 +94,12 @@ button {
   cursor: pointer;
 }
 
+/* Table styles */
 table {
-  width: 100%;
+  width: 100%; /* Ensure table takes up 100% of container */
   margin-top: 20px;
   border-collapse: collapse;
+  table-layout: fixed; /* Fixed layout for consistent columns */
 }
 
 table, th, td {
@@ -97,5 +109,26 @@ table, th, td {
 
 th, td {
   padding: 10px;
-  text-align: left;
+  text-align: center; /* Center align text in table cells */
+  min-width: 100px; /* Minimum width for table cells to maintain layout */
+}
+
+/* Text alignment for table cells */
+th, td {
+  text-align: center;
+}
+
+/* Special row for empty data */
+.no-data-row {
+  font-style: italic;
+  color: #ffffff;
+}
+
+/* Checkbox styles */
+.MuiCheckbox-root {
+  color: white;
+}
+
+.Mui-checked {
+  color: #00FF00;
 }
