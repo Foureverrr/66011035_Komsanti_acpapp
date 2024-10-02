@@ -79,10 +79,13 @@ async def get_customers(db: AsyncSession = Depends(get_db)):
     Endpoint to get all customers for frontend display.
     """
     try:
-        result = await db.execute("SELECT * FROM customer")
-        customers = result.fetchall()
-        print(f"Fetched customers: {customers}")
-        return customers
+        # Fetch all customer records from the main table
+        result = await db.execute(select(Main))
+        customers = result.scalars().all()
+        # Convert the ORM objects to dictionaries (ensure `id` is present)
+        customers_dict = [customer.__dict__ for customer in customers]
+        print(f"Fetched customers: {customers_dict}")
+        return customers_dict
     except Exception as e:
         print(f"Error fetching customers: {e}")
         raise HTTPException(status_code=400, detail=f"Failed to fetch customers: {e}")

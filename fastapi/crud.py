@@ -64,15 +64,25 @@ async def create_main(db: AsyncSession, data: dict):
         print(f"Error in create_main: {e}")
         raise
 
-# Function to delete a customer and related data from the database
-async def delete_customer_by_id(db: AsyncSession, customer_id: int):
+async def delete_customer_by_id(db: AsyncSession, main_id: int):
     try:
-        # Delete from Main, Vehicle, and Customer tables
-        await db.execute(delete(Main).where(Main.id == customer_id))
-        await db.execute(delete(Vehicle).where(Vehicle.id == customer_id))
-        await db.execute(delete(Customer).where(Customer.id == customer_id))
+        print(f"Attempting to delete entries related to Main ID: {main_id}")
+
+        # Step 1: Delete the entry from the Main table using the main_id
+        await db.execute(delete(Main).where(Main.id == main_id))
+        print(f"Deleted from Main table using ID: {main_id}")
+
+        # Step 2: Delete the entry from the Customer table using the same main_id
+        await db.execute(delete(Customer).where(Customer.id == main_id))
+        print(f"Deleted from Customer table using ID: {main_id}")
+
+        # Step 3: Delete the entry from the Vehicle table using the same main_id
+        await db.execute(delete(Vehicle).where(Vehicle.id == main_id))
+        print(f"Deleted from Vehicle table using ID: {main_id}")
+
+        # Commit the transaction to finalize the changes
         await db.commit()
-        print(f"Deleted customer with ID {customer_id}")
+        print(f"Successfully deleted all entries related to Main ID: {main_id}")
     except Exception as e:
         print(f"Error in delete_customer_by_id: {e}")
         raise

@@ -1,5 +1,3 @@
-// useBearStore.js
-
 import { create } from 'zustand';
 import axios from 'axios';
 
@@ -14,7 +12,14 @@ const useBearStore = create((set) => ({
   fetchCustomers: async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/get_customers');
-      const customers = response.data;
+      console.log("Fetched customers from backend:", response.data); // Log the response data to verify structure
+
+      // Ensure that each customer has an id field
+      const customers = response.data.map(customer => ({
+        ...customer,
+        id: customer.id // Make sure the ID is correctly set from the backend
+      }));
+      
       set({ customers, carCount: customers.filter((c) => !c.checked).length });
     } catch (error) {
       console.error('Failed to fetch customers:', error);
@@ -22,17 +27,15 @@ const useBearStore = create((set) => ({
   },
 
   addCustomer: (customer) => set((state) => {
-    const newCustomers = [...state.customers, { ...customer, checked: false }];
+    const newCustomers = [...state.customers, { ...customer, id: customer.id || state.customers.length + 1, checked: false }];
     return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
   }),
 
-  // Function to delete a customer from state
   deleteCustomer: (index) => set((state) => {
     const newCustomers = state.customers.filter((_, i) => i !== index);
     return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
   }),
 
-  // Function to toggle customer status (e.g., checked/unchecked)
   toggleCustomerStatus: (index) => set((state) => {
     const newCustomers = state.customers.map((customer, i) =>
       i === index ? { ...customer, checked: !customer.checked } : customer
@@ -40,7 +43,6 @@ const useBearStore = create((set) => ({
     return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
   }),
 
-  // New function to set the customers state directly (for clearing frontend view)
   setCustomers: (newCustomers) => set(() => ({
     customers: newCustomers,
     carCount: newCustomers.filter((c) => !c.checked).length,
