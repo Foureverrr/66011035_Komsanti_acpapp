@@ -9,6 +9,7 @@ from crud import create_customer, create_vehicle, create_main, delete_customer_b
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
+from sqlalchemy import select
 
 app = FastAPI()
 
@@ -49,29 +50,32 @@ async def shutdown():
 
 @app.post("/api/add_customer")
 async def add_customer(customer: CustomerCreate, db: AsyncSession = Depends(get_db)):
-    """
-    Endpoint to add a new customer, vehicle, and main entry.
-    """
     try:
-        # If no timestamp is provided, set it to the current time
-        if customer.timestamp is None:
-            customer.timestamp = datetime.utcnow()  # Ensure we have a timestamp
-
-        print("Received customer data:", customer.dict())
-        
         # Create new entries for the customer, vehicle, and main tables
         new_customer = await create_customer(db, customer.dict())
-        print(f"Created customer: {new_customer}")
         new_vehicle = await create_vehicle(db, customer.dict())
-        print(f"Created vehicle: {new_vehicle}")
         new_main = await create_main(db, customer.dict())
-        print(f"Created main entry: {new_main}")
-        
-        # Return success message upon successful entry
-        return {"message": "Customer data added successfully"}
+
+        # Return success message with relevant data
+        return {
+            "message": "Customer data added successfully",
+            "customer": {
+                "id": new_customer.id,
+                "customer_name": f"{customer.name} {customer.surname}",
+                "tel": customer.tel,
+                "license_plate": customer.licensePlate,
+                "brand": customer.brand,
+                "model": customer.model,
+                "symptoms": customer.symptoms,
+                "cost": customer.cost,
+                "mechanic": customer.mechanic,
+                "timestamp": new_customer.timestamp
+            }
+        }
     except Exception as e:
         print(f"Error adding customer data: {e}")
         raise HTTPException(status_code=400, detail=f"Failed to add customer data: {e}")
+
 
 @app.get("/api/get_customers")
 async def get_customers(db: AsyncSession = Depends(get_db)):

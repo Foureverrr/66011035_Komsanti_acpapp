@@ -53,12 +53,18 @@ export default function CustomerForm() {
     const formData = new FormData(event.target);
     const customerData = Object.fromEntries(formData.entries());
 
+    // Combine name and surname into customer_name for the backend
+    customerData.customer_name = `${customerData.name} ${customerData.surname}`;
+
     try {
       const response = await axios.post('http://localhost:8000/api/add_customer', customerData);
       console.log('Customer data added successfully:', response.data);
 
       // Update Zustand state with the new customer data including the timestamp
-      addCustomer({ ...customerData, timestamp: new Date().toISOString() });
+      addCustomer({
+        ...response.data.customer, // Use the returned customer data from the backend
+        timestamp: new Date().toISOString()
+      });
       alert('Customer data added successfully');
     } catch (error) {
       console.error('Error adding customer data:', error);
