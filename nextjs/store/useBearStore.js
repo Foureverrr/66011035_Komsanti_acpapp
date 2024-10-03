@@ -12,14 +12,15 @@ const useBearStore = create((set) => ({
   fetchCustomers: async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/get_customers');
-      console.log("Fetched customers from backend:", response.data); // Log the response data to verify structure
+      const storedStatus = JSON.parse(localStorage.getItem('customerStatus') || '{}');
 
-      // Ensure that each customer has an id field
-      const customers = response.data.map(customer => ({
+      // Ensure each customer has a proper id and merge with localStorage status if available
+      const customers = response.data.map((customer) => ({
         ...customer,
-        id: customer.id // Make sure the ID is correctly set from the backend
+        id: customer.id,
+        checked: storedStatus[customer.id] || false // Use stored status or default to false
       }));
-      
+
       set({ customers, carCount: customers.filter((c) => !c.checked).length });
     } catch (error) {
       console.error('Failed to fetch customers:', error);
@@ -40,6 +41,14 @@ const useBearStore = create((set) => ({
     const newCustomers = state.customers.map((customer, i) =>
       i === index ? { ...customer, checked: !customer.checked } : customer
     );
+
+    // Update localStorage with the new status
+    const statusMap = newCustomers.reduce((acc, customer) => {
+      acc[customer.id] = customer.checked;
+      return acc;
+    }, {});
+    localStorage.setItem('customerStatus', JSON.stringify(statusMap));
+
     return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
   }),
 

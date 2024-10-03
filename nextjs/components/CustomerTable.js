@@ -23,17 +23,20 @@ const CustomCheckbox = styled(Checkbox)(({ theme }) => ({
 }));
 
 export default function CustomerTable() {
-  // Zustand store functions
   const customers = useBearStore((state) => state.customers);
   const fetchCustomers = useBearStore((state) => state.fetchCustomers);
   const deleteCustomer = useBearStore((state) => state.deleteCustomer);
   const toggleCustomerStatus = useBearStore((state) => state.toggleCustomerStatus);
 
+  // Load data from Zustand and merge with localStorage data
   useEffect(() => {
-    fetchCustomers(); // Fetch customer data when the component mounts
+    fetchCustomers();
   }, [fetchCustomers]);
 
-  // Function to handle deleting a customer from both the frontend and database
+  // Log customers to verify correct data
+  console.log("Customers data:", customers);
+
+  // Handle delete customer from both frontend and backend
   const handleDelete = async (customerId, index) => {
     try {
       await axios.delete(`http://localhost:8000/api/delete_customer/${customerId}`);
@@ -69,6 +72,13 @@ export default function CustomerTable() {
                 // Split customer_name into name and surname with default values
                 const [name = 'Unknown', surname = ''] = (customer.customer_name || '').split(" ");
 
+                // Debugging output to verify data
+                console.log("Customer details:", {
+                  brand: customer.brand,
+                  model: customer.model,
+                  timestamp: customer.timestamp,
+                });
+
                 return (
                   <TableRow key={index}>
                     <TableCell style={{ width: '10%' }}>
@@ -88,10 +98,10 @@ export default function CustomerTable() {
                       {customer.tel}
                     </TableCell>
                     <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
-                      {customer.license_plate || 'N/A'} {/* Ensure license plate is displayed */}
+                      {customer.license_plate || 'N/A'}
                     </TableCell>
                     <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
-                      {`${customer.brand || 'N/A'} ${customer.model || 'N/A'}`} {/* Handle brand and model */}
+                      {`${customer.brand || 'N/A'} ${customer.model || 'N/A'}`}
                     </TableCell>
                     <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
                       {customer.symptoms}

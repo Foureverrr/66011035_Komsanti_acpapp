@@ -51,10 +51,25 @@ async def shutdown():
 @app.post("/api/add_customer")
 async def add_customer(customer: CustomerCreate, db: AsyncSession = Depends(get_db)):
     try:
+        # Create a default timestamp if it's not provided
+        if not customer.timestamp:
+            customer.timestamp = datetime.utcnow()
+        
+        # Debug: Print received customer data
+        print("Received customer data:", customer.dict())  # Debugging message to see incoming data
+
         # Create new entries for the customer, vehicle, and main tables
         new_customer = await create_customer(db, customer.dict())
+        print(f"Created customer in DB: {new_customer}")
+
         new_vehicle = await create_vehicle(db, customer.dict())
+        print(f"Created vehicle in DB: {new_vehicle}")
+
         new_main = await create_main(db, customer.dict())
+        print(f"Created main entry in DB: {new_main}")
+
+        # Debug output to ensure fields are correctly saved
+        print(f"Final Main Entry - Brand: {new_main.car}, Timestamp: {new_customer.timestamp}")
 
         # Return success message with relevant data
         return {
@@ -69,7 +84,7 @@ async def add_customer(customer: CustomerCreate, db: AsyncSession = Depends(get_
                 "symptoms": customer.symptoms,
                 "cost": customer.cost,
                 "mechanic": customer.mechanic,
-                "timestamp": new_customer.timestamp
+                "timestamp": new_customer.timestamp.isoformat()  # Convert timestamp to ISO format
             }
         }
     except Exception as e:
@@ -79,20 +94,19 @@ async def add_customer(customer: CustomerCreate, db: AsyncSession = Depends(get_
 
 @app.get("/api/get_customers")
 async def get_customers(db: AsyncSession = Depends(get_db)):
-    """
-    Endpoint to get all customers for frontend display.
-    """
     try:
         # Fetch all customer records from the main table
         result = await db.execute(select(Main))
         customers = result.scalars().all()
         # Convert the ORM objects to dictionaries (ensure `id` is present)
         customers_dict = [customer.__dict__ for customer in customers]
-        print(f"Fetched customers: {customers_dict}")
+        print(f"Fetched customers from DB: {customers_dict}")  # Debug output to see what is fetched
         return customers_dict
     except Exception as e:
         print(f"Error fetching customers: {e}")
         raise HTTPException(status_code=400, detail=f"Failed to fetch customers: {e}")
+
+
 
 @app.delete("/api/delete_customer/{customer_id}")
 async def delete_customer(customer_id: int, db: AsyncSession = Depends(get_db)):
