@@ -95,12 +95,40 @@ async def add_customer(customer: CustomerCreate, db: AsyncSession = Depends(get_
 @app.get("/api/get_customers")
 async def get_customers(db: AsyncSession = Depends(get_db)):
     try:
-        # Fetch all customer records from the main table
-        result = await db.execute(select(Main))
-        customers = result.scalars().all()
-        # Convert the ORM objects to dictionaries (ensure `id` is present)
-        customers_dict = [customer.__dict__ for customer in customers]
-        print(f"Fetched customers from DB: {customers_dict}")  # Debug output to see what is fetched
+        # Perform a join to include the timestamp from the Customer table based on `tel`
+        stmt = select(
+            Main.id,
+            Main.customer_name,
+            Main.tel,
+            Main.license_plate,
+            Main.car,
+            Main.symptoms,
+            Main.cost,
+            Main.mechanic,
+            Customer.timestamp  # Include the timestamp from the Customer table
+        ).select_from(
+            join(Main, Customer, Main.tel == Customer.tel)  # Join based on `tel` field
+        )
+
+        result = await db.execute(stmt)
+        customers = result.all()
+
+        # Convert results to a list of dictionaries including the timestamp
+        customers_dict = [
+            {
+                "id": customer.id,
+                "customer_name": customer.customer_name,
+                "tel": customer.tel,
+                "license_plate": customer.license_plate,
+                "car": customer.car,
+                "symptoms": customer.symptoms,
+                "cost": customer.cost,
+                "mechanic": customer.mechanic,
+                "timestamp": customer.timestamp.isoformat() if customer.timestamp else None
+            }
+            for customer in customers
+        ]
+
         return customers_dict
     except Exception as e:
         print(f"Error fetching customers: {e}")

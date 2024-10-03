@@ -1,3 +1,5 @@
+// components/CustomerTable.js
+
 import React, { useEffect } from 'react';
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Checkbox, Button } from '@mui/material';
 import useBearStore from '@/store/useBearStore';
@@ -28,13 +30,10 @@ export default function CustomerTable() {
   const deleteCustomer = useBearStore((state) => state.deleteCustomer);
   const toggleCustomerStatus = useBearStore((state) => state.toggleCustomerStatus);
 
-  // Load data from Zustand and merge with localStorage data
+  // Load data when component mounts or on page refresh
   useEffect(() => {
     fetchCustomers();
   }, [fetchCustomers]);
-
-  // Log customers to verify correct data
-  console.log("Customers data:", customers);
 
   // Handle delete customer from both frontend and backend
   const handleDelete = async (customerId, index) => {
@@ -68,62 +67,50 @@ export default function CustomerTable() {
           </TableHead>
           <TableBody>
             {customers.length > 0 ? (
-              customers.map((customer, index) => {
-                // Split customer_name into name and surname with default values
-                const [name = 'Unknown', surname = ''] = (customer.customer_name || '').split(" ");
-
-                // Debugging output to verify data
-                console.log("Customer details:", {
-                  brand: customer.brand,
-                  model: customer.model,
-                  timestamp: customer.timestamp,
-                });
-
-                return (
-                  <TableRow key={index}>
-                    <TableCell style={{ width: '10%' }}>
-                      <CustomCheckbox
-                        checked={customer.checked}
-                        onChange={() => toggleCustomerStatus(index)}
-                        sx={{ textAlign: 'center', width: '120%', color: 'white' }}
-                      />
-                    </TableCell>
-                    <TableCell style={{ color: '#ffffff', textAlign: 'center', width: '10%' }}>
-                      {customer.timestamp ? new Date(customer.timestamp).toLocaleString() : 'N/A'}
-                    </TableCell>
-                    <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
-                      {`${name} ${surname}`}
-                    </TableCell>
-                    <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
-                      {customer.tel}
-                    </TableCell>
-                    <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
-                      {customer.license_plate || 'N/A'}
-                    </TableCell>
-                    <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
-                      {`${customer.brand || 'N/A'} ${customer.model || 'N/A'}`}
-                    </TableCell>
-                    <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
-                      {customer.symptoms}
-                    </TableCell>
-                    <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
-                      {customer.cost}
-                    </TableCell>
-                    <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
-                      {customer.mechanic}
-                    </TableCell>
-                    <TableCell style={{ width: '10%' }}>
-                      <Button
-                        onClick={() => handleDelete(customer.id, index)}
-                        variant="contained"
-                        sx={{ backgroundColor: '#182b3b', color: '#ffffff' }}
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
+              customers.map((customer, index) => (
+                <TableRow key={index}>
+                  <TableCell style={{ width: '10%' }}>
+                    <CustomCheckbox
+                      checked={customer.checked}
+                      onChange={() => toggleCustomerStatus(index)}
+                      sx={{ textAlign: 'center', width: '120%', color: 'white' }}
+                    />
+                  </TableCell>
+                  <TableCell style={{ color: '#ffffff', textAlign: 'center', width: '10%' }}>
+                    {customer.timestamp ? new Date(customer.timestamp).toLocaleString() : 'N/A'}
+                  </TableCell>
+                  <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
+                    {customer.customer_name}
+                  </TableCell>
+                  <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
+                    {customer.tel}
+                  </TableCell>
+                  <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
+                    {customer.license_plate || 'N/A'}
+                  </TableCell>
+                  <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
+                  {`${customer.brand || customer.car} ${customer.model || ''}`}
+                  </TableCell>
+                  <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
+                    {customer.symptoms}
+                  </TableCell>
+                  <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
+                    {customer.cost}
+                  </TableCell>
+                  <TableCell style={{ fontSize: '1.0rem', color: '#ffffff', textAlign: 'center', width: '10%' }}>
+                    {customer.mechanic}
+                  </TableCell>
+                  <TableCell style={{ width: '10%' }}>
+                    <Button
+                      onClick={() => handleDelete(customer.id, index)}
+                      variant="contained"
+                      sx={{ backgroundColor: '#182b3b', color: '#ffffff' }}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
             ) : (
               <TableRow>
                 <TableCell colSpan={10} style={{ color: '#ffffff', textAlign: 'center', fontStyle: 'italic' }}>
