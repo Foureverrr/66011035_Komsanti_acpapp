@@ -18,6 +18,16 @@ const theme = createTheme({
 
 export default function MyApp({ Component, pageProps }) {
   const [isLocked, setIsLocked] = React.useState(true);
+  const [isInitialized, setIsInitialized] = React.useState(false);
+
+  React.useEffect(() => {
+    // Check localStorage to determine the initial lock state
+    const lockState = localStorage.getItem('isLocked');
+    if (lockState === 'false') {
+      setIsLocked(false);
+    }
+    setIsInitialized(true); // Mark that initialization is complete
+  }, []);
 
   const unlock = () => {
     setIsLocked(false);
@@ -25,7 +35,13 @@ export default function MyApp({ Component, pageProps }) {
 
   const lock = () => {
     setIsLocked(true);
+    // Set the lock state in localStorage
+    localStorage.setItem('isLocked', 'true');
   };
+
+  if (!isInitialized) {
+    return null; // Don't render anything until initialization is complete
+  }
 
   return (
     <ThemeProvider theme={theme}>
