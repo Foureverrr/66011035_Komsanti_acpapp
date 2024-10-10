@@ -47,6 +47,50 @@ async def startup():
 async def shutdown():
     await async_engine.dispose()
     print("Database connection closed")
+    
+# Endpoint to generate report
+@app.get("/api/get_report")
+async def get_report(start_date: datetime, end_date: datetime, db: AsyncSession = Depends(get_db)):
+    try:
+        print(f"Generating report for date range: {start_date} to {end_date}")
+        
+        # Fetch customer IDs within the date range from the Customer table
+        customer_stmt = select(Customer.id).where(Customer.timestamp.between(start_date, end_date))
+        customer_result = await db.execute(customer_stmt)
+        customer_ids = [row[0] for row in customer_result.fetchall()]
+
+        if not customer_ids:
+            print("No customers found in the specified date range.")
+            return {"carBrands": [], "totalIncome": 0}
+
+        # Fetch entries from the Main table for the matched customer IDs
+        stmt = select(Main).where(Main.id.in_(customer_ids))
+        result = await db.execute(stmt)
+        customers = result.scalars().all()
+
+        # Debug: Print the number of customers found
+        print(f"Number of customers found: {len(customers)}")
+
+        # Calculate car brand count and percentage
+        brand_count = {}
+        total_customers = len(customers)
+
+        for customer in customers:
+            brand = customer.car.split()[0] if customer.car else "Unknown"
+            brand_count[brand] = brand_count.get(brand, 0) + 1
+
+        car_brands = [
+            {"name": brand, "percentage": (count / total_customers) * 100, "count": count}
+            for brand, count in brand_count.items()
+        ]
+
+        # Calculate total income
+        total_income = sum(customer.cost for customer in customers if customer.cost)
+
+        return {"carBrands": car_brands, "totalIncome": total_income}
+    except Exception as e:
+        print(f"Error generating report: {e}")
+        raise HTTPException(status_code=400, detail=f"Failed to generate report: {e}")
 
 @app.post("/api/add_customer")
 async def add_customer(customer: CustomerCreate, db: AsyncSession = Depends(get_db)):
