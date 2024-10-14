@@ -5,13 +5,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from database import async_engine, get_db, metadata
 from models import Customer, Vehicle, Main
-from crud import create_customer, create_vehicle, create_main, delete_customer_by_id
+from crud import create_customer, create_vehicle, create_main, delete_customer_by_id, create_mechanic, delete_mechanic_by_id
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from sqlalchemy import select
 
 app = FastAPI()
+
+# Pydantic model for incoming mechanic data
+class MechanicCreate(BaseModel):
+    name: str
+    surname: str
+    tel: str
+
 
 # Define a Pydantic model for incoming customer data
 class CustomerCreate(BaseModel):
@@ -47,6 +54,27 @@ async def startup():
 async def shutdown():
     await async_engine.dispose()
     print("Database connection closed")
+    
+# Add mechanic endpoint
+@app.post("/api/add_mechanic")
+async def add_mechanic(mechanic: MechanicCreate, db: AsyncSession = Depends(get_db)):
+    try:
+        new_mechanic = await create_mechanic(db, mechanic.name, mechanic.surname, mechanic.tel)
+        return {"message": "Mechanic added successfully", "mechanic": new_mechanic}
+    except Exception as e:
+        print(f"Error adding mechanic: {e}")
+        raise HTTPException(status_code=400, detail=f"Failed to add mechanic: {e}")
+    
+
+# Delete mechanic endpoint
+@app.delete("/api/delete_mechanic/{mechanic_id}")
+async def delete_mechanic(mechanic_id: int, db: AsyncSession = Depends(get_db)):
+    try:
+        await delete_mechanic_by_id(db, mechanic_id)
+        return {"message": f"Mechanic with ID {mechanic_id} deleted successfully"}
+    except Exception as e:
+        print(f"Error deleting mechanic: {e}")
+        raise HTTPException(status_code=400, detail="Failed to delete mechanic")
     
 # Endpoint to generate report
 @app.get("/api/get_report")

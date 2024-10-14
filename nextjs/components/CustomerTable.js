@@ -104,7 +104,7 @@ export default function CustomerTable() {
                     <Button
                       onClick={() => handleDelete(customer.id, index)}
                       variant="contained"
-                      sx={{ backgroundColor: '#182b3b', color: '#ffffff' }}
+                      sx={{ backgroundColor: '#b30000', color: '#ffffff' }}
                     >
                       Delete
                     </Button>

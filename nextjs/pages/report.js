@@ -1,49 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { Box, Typography, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Box, Typography, TextField, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Drawer, IconButton } from '@mui/material';
 import useBearStore from '@/store/useBearStore';
 import dayjs from 'dayjs';
+import axios from 'axios';
+import { styled } from '@mui/material/styles';
+
+// Styled components for the drawer and button
+const DrawerButton = styled(IconButton)({
+  position: 'fixed',
+  right: 0,
+  top: '50%',
+  transform: 'translateY(-50%)',
+  zIndex: 999,
+});
 
 export default function Report() {
   const [startDateTime, setStartDateTime] = useState('');
   const [endDateTime, setEndDateTime] = useState('');
-  const [filteredCustomers, setFilteredCustomers] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const storedData = localStorage.getItem('filteredCustomers');
-      return storedData ? JSON.parse(storedData) : [];
-    }
-    return [];
-  }); // For right-side table
-  const [brandCount, setBrandCount] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const storedData = localStorage.getItem('brandCount');
-      return storedData ? JSON.parse(storedData) : {};
-    }
-    return {};
-  });
-  const [totalIncome, setTotalIncome] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const storedData = localStorage.getItem('totalIncome');
-      return storedData ? JSON.parse(storedData) : 0;
-    }
-    return 0;
-  });
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [brandCount, setBrandCount] = useState({});
+  const [totalIncome, setTotalIncome] = useState(0);
+
+  // Mechanics drawer state
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [surname, setSurname] = useState('');
+  const [tel, setTel] = useState('');
+  const [mechanics, setMechanics] = useState([]);
 
   const fetchCustomers = useBearStore((state) => state.fetchCustomers);
   const customers = useBearStore((state) => state.customers);
 
+  // Load data from localStorage when the component mounts
   useEffect(() => {
-    // Fetch customers initially to have data for filtering
+    const savedMechanics = localStorage.getItem('mechanics');
+    const savedFilteredCustomers = localStorage.getItem('filteredCustomers');
+    const savedBrandCount = localStorage.getItem('brandCount');
+    const savedTotalIncome = localStorage.getItem('totalIncome');
+
+    if (savedMechanics) setMechanics(JSON.parse(savedMechanics));
+    if (savedFilteredCustomers) setFilteredCustomers(JSON.parse(savedFilteredCustomers));
+    if (savedBrandCount) setBrandCount(JSON.parse(savedBrandCount));
+    if (savedTotalIncome) setTotalIncome(parseFloat(savedTotalIncome) || 0);
+
     fetchCustomers();
   }, [fetchCustomers]);
 
+  // Save mechanics and filteredCustomers to localStorage when they are updated
   useEffect(() => {
-    // Store filtered customers, brand count, and total income in localStorage
-    if (filteredCustomers.length > 0) {
-      localStorage.setItem('filteredCustomers', JSON.stringify(filteredCustomers));
-      localStorage.setItem('brandCount', JSON.stringify(brandCount));
-      localStorage.setItem('totalIncome', JSON.stringify(totalIncome));
-    }
+    localStorage.setItem('mechanics', JSON.stringify(mechanics));
+  }, [mechanics]);
+
+  useEffect(() => {
+    localStorage.setItem('filteredCustomers', JSON.stringify(filteredCustomers));
+    localStorage.setItem('brandCount', JSON.stringify(brandCount));
+    localStorage.setItem('totalIncome', totalIncome.toString());
   }, [filteredCustomers, brandCount, totalIncome]);
 
   // Function to handle report generation
@@ -53,26 +65,53 @@ export default function Report() {
       return;
     }
 
-    console.log('Generating report with date and time:', { startDateTime, endDateTime });
-
-    // Filter the customer data based on the date and time range
     const filtered = customers.filter((customer) => {
       const customerDate = dayjs(customer.timestamp);
       return customerDate.isAfter(dayjs(startDateTime)) && customerDate.isBefore(dayjs(endDateTime));
     });
     setFilteredCustomers(filtered);
 
-    // Calculate total income
     const income = filtered.reduce((sum, customer) => sum + parseFloat(customer.cost || 0), 0);
     setTotalIncome(income);
 
-    // Calculate car brand count and percentage
     const brandCountMap = {};
     filtered.forEach((customer) => {
       const brand = customer.brand || customer.car.split()[0] || 'Unknown';
       brandCountMap[brand] = (brandCountMap[brand] || 0) + 1;
     });
     setBrandCount(brandCountMap);
+  };
+
+  // Add mechanic function
+  const addMechanic = async () => {
+    try {
+      console.log("Sending data:", { name, surname, tel });  // Debugging: Print the data before sending
+      const response = await axios.post('http://localhost:8000/api/add_mechanic', {
+        name,
+        surname,
+        tel,
+      });
+      setMechanics((prevMechanics) => [...prevMechanics, response.data.mechanic]);
+      setName('');
+      setSurname('');
+      setTel('');
+      console.log("Mechanic added successfully:", response.data.mechanic);
+    } catch (error) {
+      console.error('Error adding mechanic:', error);
+    }
+    alert('Mechanics data added successfully');
+  };
+
+  // Delete mechanic function
+  const deleteMechanic = async (mechanicId) => {
+    try {
+      await axios.delete(`http://localhost:8000/api/delete_mechanic/${mechanicId}`);
+      setMechanics((prevMechanics) => prevMechanics.filter((mechanic) => mechanic.id !== mechanicId));
+    } catch (error) {
+      console.error('Failed to delete mechanic:', error);
+      alert('Failed to delete mechanic');
+    }
+    alert('Mechanics data deleted successfully');
   };
 
   return (
@@ -83,7 +122,6 @@ export default function Report() {
       <Box className="tab-content active" sx={{ backgroundColor: '#355364', height: '93.1vh', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', padding: '30px' }}>
         {/* Left side (Inputs, Report Summary) */}
         <Box component="form" sx={{ width: '25%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginRight: '20px' }}>
-          {/* Date and Time Inputs */}
           <TextField
             type="datetime-local"
             label="Start Date and Time"
@@ -102,12 +140,10 @@ export default function Report() {
             sx={{ marginBottom: '20px', backgroundColor: 'white' }}
             required
           />
-          {/* Generate Report Button */}
           <Button variant="contained" onClick={handleGenerateReport} sx={{ backgroundColor: '#182b3b', color: '#ffffff', marginBottom: '20px' }}>
             Generate Report
           </Button>
 
-          {/* Total Cars and Income */}
           <Typography variant="h4" sx={{ color: '#ffffff', marginBottom: '10px' }}>
             Total Cars: {filteredCustomers.length} cars
           </Typography>
@@ -117,32 +153,30 @@ export default function Report() {
           </Typography>
 
           {/* Car Brands Percentages */}
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-            <TableContainer component={Box} sx={{ width: '100%' }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ color: '#ffffff', fontWeight: 'bold', fontSize: '1.2rem' }}>Brand</TableCell>
-                    <TableCell sx={{ color: '#ffffff', fontWeight: 'bold', fontSize: '1.2rem' }}>Percentage</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {Object.keys(brandCount).length > 0 ? (
-                    Object.entries(brandCount).map(([brand, count], index) => (
-                      <TableRow key={index}>
-                        <TableCell sx={{ color: '#ffffff', fontSize: '1.1rem' }}>{brand}</TableCell>
-                        <TableCell sx={{ color: '#ffffff', fontSize: '1.1rem' }}>{((count / filteredCustomers.length) * 100).toFixed(2)}%</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={2} sx={{ color: '#ffffff', textAlign: 'center', fontStyle: 'italic' }}>No Data Available</TableCell>
+          <TableContainer component={Box} sx={{ width: '100%' }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ color: '#ffffff', fontWeight: 'bold', fontSize: '1.2rem' }}>Brand</TableCell>
+                  <TableCell sx={{ color: '#ffffff', fontWeight: 'bold', fontSize: '1.2rem' }}>Percentage</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {Object.keys(brandCount).length > 0 ? (
+                  Object.entries(brandCount).map(([brand, count], index) => (
+                    <TableRow key={index}>
+                      <TableCell sx={{ color: '#ffffff', fontSize: '1.1rem' }}>{brand}</TableCell>
+                      <TableCell sx={{ color: '#ffffff', fontSize: '1.1rem' }}>{((count / filteredCustomers.length) * 100).toFixed(2)}%</TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={2} sx={{ color: '#ffffff', textAlign: 'center', fontStyle: 'italic' }}>No Data Available</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Box>
 
         {/* Right side (Filtered Customer Table) */}
@@ -187,6 +221,57 @@ export default function Report() {
           </TableContainer>
         </Box>
       </Box>
+
+      {/* Drawer Button */}
+      <DrawerButton onClick={() => setOpen(true)}>
+        <Typography variant="h6" sx={{ color: '#ffffff' }}>▶</Typography>
+      </DrawerButton>
+
+      {/* Drawer Content */}
+      <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
+        <Box sx={{ width: '250px', padding: '20px', backgroundColor: '#355364', height: '100%' }}>
+          <Typography variant="h5" sx={{ color: '#ffffff', marginBottom: '20px' }}>Add Mechanic</Typography>
+
+          <TextField
+            label="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            fullWidth
+            sx={{ marginBottom: '10px', backgroundColor: 'white' }}
+          />
+          <TextField
+            label="Surname"
+            value={surname}
+            onChange={(e) => setSurname(e.target.value)}
+            fullWidth
+            sx={{ marginBottom: '10px', backgroundColor: 'white' }}
+          />
+          <TextField
+            label="Tel"
+            value={tel}
+            onChange={(e) => setTel(e.target.value)}
+            fullWidth
+            sx={{ marginBottom: '10px', backgroundColor: 'white' }}
+          />
+          <Button variant="contained" onClick={addMechanic} sx={{ backgroundColor: '#182b3b', color: '#ffffff' }}>
+            Add
+          </Button>
+
+          <Typography variant="h6" sx={{ color: '#ffffff', marginTop: '20px' }}>Mechanics</Typography>
+          {mechanics.map((mechanic, index) => (
+            <Box key={index} sx={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body1" sx={{ color: '#ffffff' }}>{mechanic.name}</Typography>
+              <Button
+                variant="contained"
+                sx={{ backgroundColor: '#b30000', color: '#ffffff' }}
+                onClick={() => deleteMechanic(mechanic.id)}
+              >
+                Delete
+              </Button>
+            </Box>
+          ))}
+        </Box>
+      </Drawer>
     </>
   );
 }

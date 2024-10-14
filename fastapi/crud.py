@@ -2,7 +2,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete
-from models import Customer, Vehicle, Main
+from models import Customer, Vehicle, Main, Mechanics
 from datetime import datetime
 
 # Create a customer entry in the database
@@ -85,4 +85,27 @@ async def delete_customer_by_id(db: AsyncSession, main_id: int):
         print(f"Successfully deleted all entries related to Main ID: {main_id}")
     except Exception as e:
         print(f"Error in delete_customer_by_id: {e}")
+        raise
+    
+async def create_mechanic(db: AsyncSession, name: str, surname: str, tel: str):
+    try:
+        new_mechanic = Mechanics(name=name, surname=surname, tel=tel)
+        db.add(new_mechanic)
+        await db.commit()
+        await db.refresh(new_mechanic)
+        return new_mechanic
+    except Exception as e:
+        print(f"Error creating mechanic: {e}")
+        raise
+
+# Delete mechanic by ID
+async def delete_mechanic_by_id(db: AsyncSession, mechanic_id: int):
+    try:
+        mechanic = await db.get(Mechanics, mechanic_id)
+        if mechanic:
+            await db.delete(mechanic)
+            await db.commit()
+        return mechanic
+    except Exception as e:
+        print(f"Error deleting mechanic: {e}")
         raise

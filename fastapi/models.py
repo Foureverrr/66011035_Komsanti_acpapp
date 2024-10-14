@@ -35,7 +35,6 @@ class Main(Base):
     cost = Column(Float)
     mechanic = Column(String(100))
 
-# Mechanics Table Definition
 class Mechanics(Base):
     __tablename__ = 'mechanics'
     id = Column(Integer, primary_key=True, index=True)
