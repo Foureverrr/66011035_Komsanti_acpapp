@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Box, TextField, Button, Select, MenuItem, InputLabel, FormControl, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import axios from 'axios';
-import useBearStore from '@/store/useBearStore';
+import useBearStore from '@/store/useBearStore'; // Import the Zustand store
 
 // Styled components to maintain the existing UI design
 const WhiteTextField = styled(TextField)({
@@ -45,6 +45,16 @@ const WhiteSelect = styled(Select)({
 
 export default function CustomerForm() {
   const addCustomer = useBearStore((state) => state.addCustomer);
+  const mechanics = useBearStore((state) => state.mechanics); // Get mechanics from Zustand state
+  const fetchMechanics = useBearStore((state) => state.setMechanics); // Fetch mechanics to set state
+
+  // Fetch mechanics from local storage on component mount or server response
+  useEffect(() => {
+    const savedMechanics = localStorage.getItem('mechanics');
+    if (savedMechanics) {
+      fetchMechanics(JSON.parse(savedMechanics)); // Set the fetched mechanics to Zustand state
+    }
+  }, [fetchMechanics]);
 
   // Function to handle form submission
   const handleSubmit = async (event) => {
@@ -102,10 +112,15 @@ export default function CustomerForm() {
       <FormControl fullWidth margin="dense" variant="outlined">
         <InputLabel style={{ color: '#ffffff' }}>Mechanic</InputLabel>
         <WhiteSelect name="mechanic" required>
-          <MenuItem value="Nuttawut K.">Nuttawut K.</MenuItem>
-          <MenuItem value="Phurint B.">Phurint B.</MenuItem>
-          <MenuItem value="Pantapat I.">Pantapat I.</MenuItem>
-          <MenuItem value="Norraphat K.">Norraphat K.</MenuItem>
+          {mechanics.length > 0 ? (
+            mechanics.map((mechanic, index) => (
+              <MenuItem key={index} value={`${mechanic.name} ${mechanic.surname}`}>
+                {`${mechanic.name} ${mechanic.surname}`}
+              </MenuItem>
+            ))
+          ) : (
+            <MenuItem value="None">None</MenuItem>
+          )}
         </WhiteSelect>
       </FormControl>
 

@@ -1,5 +1,4 @@
 // store/useBearStore.js
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
@@ -10,6 +9,7 @@ const useBearStore = create(
       appName: 'Customer Dashboard',
       carCount: 0,
       customers: [],
+      mechanics: [], // State to store the mechanics list
 
       setAppName: (appName) => set({ appName }),
 
@@ -26,18 +26,21 @@ const useBearStore = create(
         }
       },
 
+      // Add customer to the Zustand state
       addCustomer: (customer) =>
         set((state) => {
           const newCustomers = [...state.customers, { ...customer, id: customer.id || state.customers.length + 1, checked: false }];
           return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
         }),
 
+      // Delete customer from the Zustand state
       deleteCustomer: (index) =>
         set((state) => {
           const newCustomers = state.customers.filter((_, i) => i !== index);
           return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
         }),
 
+      // Toggle customer status (checked or not)
       toggleCustomerStatus: (index) =>
         set((state) => {
           const newCustomers = state.customers.map((customer, i) =>
@@ -46,11 +49,20 @@ const useBearStore = create(
           return { customers: newCustomers, carCount: newCustomers.filter((c) => !c.checked).length };
         }),
 
+      // Set new customer list
       setCustomers: (newCustomers) =>
         set(() => ({
           customers: newCustomers,
           carCount: newCustomers.filter((c) => !c.checked).length,
         })),
+
+      // Add a mechanic to the mechanics list
+      addMechanic: (mechanic) => set((state) => ({
+        mechanics: [...state.mechanics, mechanic],
+      })),
+
+      // Set mechanics (for loading from backend or local storage)
+      setMechanics: (mechanics) => set({ mechanics }),
     }),
     {
       name: 'customer-store', // Name of the storage item

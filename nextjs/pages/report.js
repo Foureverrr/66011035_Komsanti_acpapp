@@ -27,36 +27,28 @@ export default function Report() {
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [tel, setTel] = useState('');
-  const [mechanics, setMechanics] = useState([]);
+  const mechanics = useBearStore((state) => state.mechanics); // Mechanics from Zustand
+  const addMechanic = useBearStore((state) => state.addMechanic); // Add mechanic to Zustand state
+  const setMechanics = useBearStore((state) => state.setMechanics); // Set mechanic state
+  const fetchCustomers = useBearStore((state) => state.fetchCustomers); // Fetch customers from Zustand
+  const customers = useBearStore((state) => state.customers); // Customers from Zustand
 
-  const fetchCustomers = useBearStore((state) => state.fetchCustomers);
-  const customers = useBearStore((state) => state.customers);
-
-  // Load data from localStorage when the component mounts
+  // Load mechanics from local storage when the component mounts
   useEffect(() => {
     const savedMechanics = localStorage.getItem('mechanics');
-    const savedFilteredCustomers = localStorage.getItem('filteredCustomers');
-    const savedBrandCount = localStorage.getItem('brandCount');
-    const savedTotalIncome = localStorage.getItem('totalIncome');
+    if (savedMechanics) {
+      const parsedMechanics = JSON.parse(savedMechanics);
+      if (Array.isArray(parsedMechanics) && parsedMechanics.every(m => m.name && m.surname)) {
+        setMechanics(parsedMechanics); // Set mechanics in Zustand state
+      }
+    }
+    fetchCustomers(); // Fetch customers from backend when component mounts
+  }, [fetchCustomers, setMechanics]);
 
-    if (savedMechanics) setMechanics(JSON.parse(savedMechanics));
-    if (savedFilteredCustomers) setFilteredCustomers(JSON.parse(savedFilteredCustomers));
-    if (savedBrandCount) setBrandCount(JSON.parse(savedBrandCount));
-    if (savedTotalIncome) setTotalIncome(parseFloat(savedTotalIncome) || 0);
-
-    fetchCustomers();
-  }, [fetchCustomers]);
-
-  // Save mechanics and filteredCustomers to localStorage when they are updated
+  // Save mechanics to local storage when they are updated
   useEffect(() => {
     localStorage.setItem('mechanics', JSON.stringify(mechanics));
   }, [mechanics]);
-
-  useEffect(() => {
-    localStorage.setItem('filteredCustomers', JSON.stringify(filteredCustomers));
-    localStorage.setItem('brandCount', JSON.stringify(brandCount));
-    localStorage.setItem('totalIncome', totalIncome.toString());
-  }, [filteredCustomers, brandCount, totalIncome]);
 
   // Function to handle report generation
   const handleGenerateReport = () => {
@@ -83,35 +75,40 @@ export default function Report() {
   };
 
   // Add mechanic function
-  const addMechanic = async () => {
+  const handleAddMechanic = async () => {
+    if (!name || !surname || !tel) {
+      alert('Please provide valid mechanic details');
+      return;
+    }
+
     try {
-      console.log("Sending data:", { name, surname, tel });  // Debugging: Print the data before sending
-      const response = await axios.post('http://localhost:8000/api/add_mechanic', {
-        name,
-        surname,
-        tel,
-      });
-      setMechanics((prevMechanics) => [...prevMechanics, response.data.mechanic]);
-      setName('');
-      setSurname('');
-      setTel('');
-      console.log("Mechanic added successfully:", response.data.mechanic);
+      const response = await axios.post('http://localhost:8000/api/add_mechanic', { name, surname, tel });
+      const newMechanic = response.data.mechanic;
+
+      if (newMechanic && newMechanic.name && newMechanic.surname) {
+        addMechanic(newMechanic); // Update Zustand state
+        setName(''); setSurname(''); setTel('');
+        alert('Mechanic added successfully');
+      } else {
+        throw new Error('Invalid mechanic data returned from the server');
+      }
     } catch (error) {
       console.error('Error adding mechanic:', error);
+      alert('Failed to add mechanic');
     }
-    alert('Mechanics data added successfully');
   };
 
   // Delete mechanic function
   const deleteMechanic = async (mechanicId) => {
     try {
       await axios.delete(`http://localhost:8000/api/delete_mechanic/${mechanicId}`);
-      setMechanics((prevMechanics) => prevMechanics.filter((mechanic) => mechanic.id !== mechanicId));
+      const updatedMechanics = mechanics.filter((mechanic) => mechanic.id !== mechanicId);
+      setMechanics(updatedMechanics); // Update Zustand state
+      alert('Mechanic deleted successfully');
     } catch (error) {
       console.error('Failed to delete mechanic:', error);
       alert('Failed to delete mechanic');
     }
-    alert('Mechanics data deleted successfully');
   };
 
   return (
@@ -253,14 +250,14 @@ export default function Report() {
             fullWidth
             sx={{ marginBottom: '10px', backgroundColor: 'white' }}
           />
-          <Button variant="contained" onClick={addMechanic} sx={{ backgroundColor: '#182b3b', color: '#ffffff' }}>
+          <Button variant="contained" onClick={handleAddMechanic} sx={{ backgroundColor: '#182b3b', color: '#ffffff' }}>
             Add
           </Button>
 
           <Typography variant="h6" sx={{ color: '#ffffff', marginTop: '20px' }}>Mechanics</Typography>
           {mechanics.map((mechanic, index) => (
             <Box key={index} sx={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="body1" sx={{ color: '#ffffff' }}>{mechanic.name}</Typography>
+              <Typography variant="body1" sx={{ color: '#ffffff' }}>{mechanic.name && mechanic.surname ? `${mechanic.name} ${mechanic.surname}` : 'Unnamed Mechanic'}</Typography>
               <Button
                 variant="contained"
                 sx={{ backgroundColor: '#b30000', color: '#ffffff' }}
